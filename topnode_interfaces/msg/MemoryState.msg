@@ -1,0 +1,7 @@
+uint64 total_program_size
+uint64 resident_size
+uint64 shared_page_count
+uint64 text_size
+uint64 lib_size
+uint64 data_size
+uint64 dirty_pages

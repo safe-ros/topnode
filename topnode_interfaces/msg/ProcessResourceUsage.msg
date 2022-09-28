@@ -1,0 +1,13 @@
+uint32 pid
+string cmdline
+string command
+string cwd
+string[] initial_environment
+string[] open_files
+IoStats io
+LoadAvg load_average
+string[] memory_maps
+Stat stat
+MemoryState memory_state
+float32 cpu_percent
+float32 memory_percent

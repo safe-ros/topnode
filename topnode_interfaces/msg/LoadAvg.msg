@@ -1,0 +1,6 @@
+float32 last_1min
+float32 last_5min
+float32 last_15min
+uint32 task_counts
+uint32 available_tasks
+uint32 last_created_task

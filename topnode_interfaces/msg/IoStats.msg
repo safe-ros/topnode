@@ -1,0 +1,7 @@
+uint64 bytes_read
+uint64 bytes_written
+uint64 characters_read
+uint64 characters_written
+uint64 read_syscalls
+uint64 write_syscalls
+uint64 cancelled_byte_writes
