@@ -16,8 +16,11 @@
 #define TOPNODE__TOPNODE_HPP
 
 #include "topnode/visibility.hpp"
+
+#include <filesystem>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
+
 #include <topnode_interfaces/msg/process_resource_usage.hpp>
 
 class ResourceMonitorNode : public rclcpp::Node {
@@ -36,7 +39,8 @@ private:
   uint64_t last_tick_kernel_mode_time_ = 0;
 
   void calculate_cpu_percentage(
-      topnode_interfaces::msg::ProcessResourceUsage &message);
+      topnode_interfaces::msg::ProcessResourceUsage &message,
+      const std::filesystem::path &proc_root);
   void calculate_memory_percentage(
       topnode_interfaces::msg::ProcessResourceUsage &message);
 };

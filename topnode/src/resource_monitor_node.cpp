@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include <chrono>
-#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -311,42 +310,41 @@ void ResourceMonitorNode::publish_resource_usage() {
   message.pid = getpid();
   message.cmdline =
       utils::read_single_line_string_from_file(proc_root / "cmdline");
-  message.command =
-      utils::read_single_line_string_from_file(proc_root / "comm");
-  message.cwd = utils::read_single_line_string_from_file(proc_root / "cwd");
-  message.initial_environment = utils::read_environment(proc_root);
-  message.open_files = utils::read_dir_of_links(proc_root / "fd");
+  // message.command =
+  //     utils::read_single_line_string_from_file(proc_root / "comm");
+  // message.cwd = utils::read_single_line_string_from_file(proc_root / "cwd");
+  // message.initial_environment = utils::read_environment(proc_root);
+  // message.open_files = utils::read_dir_of_links(proc_root / "fd");
   message.io = utils::read_io(proc_root);
   message.load_average = utils::read_load_average(proc_root);
   // message.memory_maps = utils::list_directory(proc_root / "map_files");
-  message.stat = utils::read_process_stat(proc_root);
   message.memory_state = utils::read_memory_state(proc_root);
 
-  calculate_cpu_percentage(message);
+  calculate_cpu_percentage(message, proc_root);
   calculate_memory_percentage(message);
 
   resource_usage_publisher_->publish(message);
 }
 
 void ResourceMonitorNode::calculate_cpu_percentage(
-    topnode_interfaces::msg::ProcessResourceUsage &message) {
+    topnode_interfaces::msg::ProcessResourceUsage &message,
+    const std::filesystem::path &proc_root) {
+  auto stat = utils::read_process_stat(proc_root);
   auto now = get_clock()->now();
   long ticks_per_second = sysconf(_SC_CLK_TCK);
   double user_mode_time_since_last_tick =
-      static_cast<double>(message.stat.user_mode_time -
-                          last_tick_user_mode_time_) /
+      static_cast<double>(stat.user_mode_time - last_tick_user_mode_time_) /
       ticks_per_second;
   double kernel_mode_time_since_last_tick =
-      static_cast<double>(message.stat.kernel_mode_time -
-                          last_tick_kernel_mode_time_) /
+      static_cast<double>(stat.kernel_mode_time - last_tick_kernel_mode_time_) /
       ticks_per_second;
   message.cpu_percent =
       ((user_mode_time_since_last_tick + kernel_mode_time_since_last_tick) /
        (now - last_measure_time_).seconds()) *
       100.0;
 
-  last_tick_user_mode_time_ = message.stat.user_mode_time;
-  last_tick_kernel_mode_time_ = message.stat.kernel_mode_time;
+  last_tick_user_mode_time_ = stat.user_mode_time;
+  last_tick_kernel_mode_time_ = stat.kernel_mode_time;
   last_measure_time_ = now;
 }
 
