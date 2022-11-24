@@ -302,13 +302,13 @@ get_memory_usage(std::filesystem::path proc_root) {
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0) {
     result.max_resident_set_size = ru.ru_maxrss;
-    result.shared_size = ru.ru_ixrss;
   } else {
     result.max_resident_set_size = 0;
-    result.shared_size = 0;
   }
 
   auto memory_state = read_memory_state(proc_root);
+  result.shared_size =
+      (memory_state.shared_page_count * getpagesize()) >> 10;
   result.virtual_size =
       (memory_state.total_program_size * getpagesize()) >> 10;
 
