@@ -34,15 +34,15 @@ private:
       resource_usage_publisher_;
   rclcpp::TimerBase::SharedPtr timer_;
 
+  long ticks_per_second_ = 0;
   rclcpp::Time last_measure_time_;
   uint64_t last_tick_user_mode_time_ = 0;
   uint64_t last_tick_kernel_mode_time_ = 0;
+  uint64_t last_tick_utime_ = 0;
+  uint64_t last_tick_stime_ = 0;
 
-  void calculate_cpu_percentage(
-      topnode_interfaces::msg::ProcessResourceUsage &message,
-      const std::filesystem::path &proc_root);
-  void calculate_memory_percentage(
-      topnode_interfaces::msg::ProcessResourceUsage &message);
+  topnode_interfaces::msg::CpuUsage
+  get_cpu_usage(const std::filesystem::path &proc_root);
 };
 
 #endif // TOPNODE__TOPNODE_HPP

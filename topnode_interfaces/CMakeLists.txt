@@ -9,9 +9,10 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 set(msg_files
-  "msg/IoStats.msg"
+  "msg/CpuUsage.msg"
   "msg/LoadAvg.msg"
   "msg/MemoryState.msg"
+  "msg/MemoryUsage.msg"
   "msg/ProcessResourceUsage.msg"
   "msg/Stat.msg"
   )

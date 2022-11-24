@@ -1,7 +1,3 @@
 uint32 pid
-string cmdline
-IoStats io
-LoadAvg load_average
-float32 cpu_percent
-MemoryState memory_state
-float32 memory_percent
+CpuUsage cpu_usage
+MemoryUsage memory_usage

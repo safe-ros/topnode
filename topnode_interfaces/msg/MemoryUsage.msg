@@ -1,0 +1,4 @@
+uint64 max_resident_set_size
+uint64 shared_size
+uint64 virtual_size
+float64 percent

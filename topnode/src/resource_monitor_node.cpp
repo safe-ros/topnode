@@ -16,18 +16,21 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <malloc.h>
 #include <ranges>
 #include <regex>
 #include <sstream>
 #include <string_view>
+#include <sys/resource.h>
 #include <unistd.h>
 
 #include "topnode/resource_monitor_node.hpp"
 #include <rclcpp/rclcpp.hpp>
-#include <topnode_interfaces/msg/io_stats.hpp>
-#include <topnode_interfaces/msg/load_avg.hpp>
-#include <topnode_interfaces/msg/memory_state.hpp>
 #include <topnode_interfaces/msg/process_resource_usage.hpp>
+#include <topnode_interfaces/msg/cpu_usage.hpp>
+#include <topnode_interfaces/msg/load_avg.hpp>
+#include <topnode_interfaces/msg/memory_usage.hpp>
+#include <topnode_interfaces/msg/memory_state.hpp>
 #include <topnode_interfaces/msg/stat.hpp>
 
 using namespace std::chrono_literals;
@@ -110,27 +113,27 @@ std::vector<std::string> read_environment(std::filesystem::path proc_root) {
   return read_multistring_file(proc_root / "environ");
 }
 
-topnode_interfaces::msg::IoStats read_io(std::filesystem::path proc_root) {
-  std::regex re("rchar: ([0-9]+)\nwchar: ([0-9]+)\nsyscr: ([0-9]+)\nsyscw: "
-                "([0-9]+)\nread_bytes: ([0-9]+)\nwrite_bytes: "
-                "([0-9]+)\ncancelled_write_bytes: ([0-9]+)");
-  std::string io = read_multiline_string_from_file(proc_root / "io");
-  std::smatch match;
-  topnode_interfaces::msg::IoStats result;
-
-  if (std::regex_search(io, match, re)) {
-    result.bytes_read = std::stoi(match[5].str());
-    result.bytes_written = std::stoi(match[6].str());
-    result.characters_read = std::stoi(match[1].str());
-    result.characters_written = std::stoi(match[2].str());
-    result.read_syscalls = std::stoi(match[3].str());
-    result.write_syscalls = std::stoi(match[4].str());
-    result.cancelled_byte_writes = std::stoi(match[7].str());
-  }
-
-  return result;
-}
-
+// topnode_interfaces::msg::IoStats read_io(std::filesystem::path proc_root) {
+//   std::regex re("rchar: ([0-9]+)\nwchar: ([0-9]+)\nsyscr: ([0-9]+)\nsyscw: "
+//                 "([0-9]+)\nread_bytes: ([0-9]+)\nwrite_bytes: "
+//                 "([0-9]+)\ncancelled_write_bytes: ([0-9]+)");
+//   std::string io = read_multiline_string_from_file(proc_root / "io");
+//   std::smatch match;
+//   topnode_interfaces::msg::IoStats result;
+//
+//   if (std::regex_search(io, match, re)) {
+//     result.bytes_read = std::stoi(match[5].str());
+//     result.bytes_written = std::stoi(match[6].str());
+//     result.characters_read = std::stoi(match[1].str());
+//     result.characters_written = std::stoi(match[2].str());
+//     result.read_syscalls = std::stoi(match[3].str());
+//     result.write_syscalls = std::stoi(match[4].str());
+//     result.cancelled_byte_writes = std::stoi(match[7].str());
+//   }
+//
+//   return result;
+// }
+//
 topnode_interfaces::msg::LoadAvg
 read_load_average(std::filesystem::path proc_root) {
   std::regex re(
@@ -292,6 +295,40 @@ read_memory_state(std::filesystem::path proc_root) {
   return result;
 }
 
+topnode_interfaces::msg::MemoryUsage
+get_memory_usage(std::filesystem::path proc_root) {
+  topnode_interfaces::msg::MemoryUsage result;
+
+  struct rusage ru;
+  if (getrusage(RUSAGE_SELF, &ru) == 0) {
+    result.max_resident_set_size = ru.ru_maxrss;
+    result.shared_size = ru.ru_ixrss;
+  } else {
+    result.max_resident_set_size = 0;
+    result.shared_size = 0;
+  }
+
+  auto memory_state = read_memory_state(proc_root);
+  result.virtual_size =
+      (memory_state.total_program_size * getpagesize()) >> 10;
+
+  std::regex re("MemTotal:\\s+(\\d+)\\s");
+  std::smatch match;
+
+  std::string mem_info =
+      utils::read_multiline_string_from_file("/proc/meminfo");
+  if (std::regex_search(mem_info, match, re)) {
+    uint32_t total_memory = std::stoul(match[1].str()) * 1024;
+
+    result.percent = 
+      (static_cast<double>(result.max_resident_set_size) / total_memory) * 100.0;
+  } else {
+    result.percent = 0.0;
+  }
+
+  return result;
+}
+
 } // namespace utils
 
 ResourceMonitorNode::ResourceMonitorNode(rclcpp::NodeOptions options)
@@ -302,69 +339,54 @@ ResourceMonitorNode::ResourceMonitorNode(rclcpp::NodeOptions options)
   timer_ = create_wall_timer(
       1s, std::bind(&ResourceMonitorNode::publish_resource_usage, this));
   last_measure_time_ = get_clock()->now();
+
+  ticks_per_second_ = sysconf(_SC_CLK_TCK);
 }
 
 void ResourceMonitorNode::publish_resource_usage() {
   auto message = topnode_interfaces::msg::ProcessResourceUsage();
   auto proc_root = utils::make_proc_root_path();
   message.pid = getpid();
-  message.cmdline =
-      utils::read_single_line_string_from_file(proc_root / "cmdline");
-  // message.command =
-  //     utils::read_single_line_string_from_file(proc_root / "comm");
-  // message.cwd = utils::read_single_line_string_from_file(proc_root / "cwd");
-  // message.initial_environment = utils::read_environment(proc_root);
-  // message.open_files = utils::read_dir_of_links(proc_root / "fd");
-  message.io = utils::read_io(proc_root);
-  message.load_average = utils::read_load_average(proc_root);
-  // message.memory_maps = utils::list_directory(proc_root / "map_files");
-  message.memory_state = utils::read_memory_state(proc_root);
 
-  calculate_cpu_percentage(message, proc_root);
-  calculate_memory_percentage(message);
+  message.cpu_usage = get_cpu_usage(proc_root);
+  message.memory_usage = utils::get_memory_usage(proc_root);
 
   resource_usage_publisher_->publish(message);
 }
 
-void ResourceMonitorNode::calculate_cpu_percentage(
-    topnode_interfaces::msg::ProcessResourceUsage &message,
-    const std::filesystem::path &proc_root) {
-  auto stat = utils::read_process_stat(proc_root);
+topnode_interfaces::msg::CpuUsage
+ResourceMonitorNode::get_cpu_usage(const std::filesystem::path &proc_root) {
+  topnode_interfaces::msg::CpuUsage result;
+
   auto now = get_clock()->now();
-  long ticks_per_second = sysconf(_SC_CLK_TCK);
-  double user_mode_time_since_last_tick =
-      static_cast<double>(stat.user_mode_time - last_tick_user_mode_time_) /
-      ticks_per_second;
-  double kernel_mode_time_since_last_tick =
-      static_cast<double>(stat.kernel_mode_time - last_tick_kernel_mode_time_) /
-      ticks_per_second;
-  message.cpu_percent =
-      ((user_mode_time_since_last_tick + kernel_mode_time_since_last_tick) /
-       (now - last_measure_time_).seconds()) *
-      100.0;
+  result.elapsed_time = (now - last_measure_time_).nanoseconds();
 
-  last_tick_user_mode_time_ = stat.user_mode_time;
-  last_tick_kernel_mode_time_ = stat.kernel_mode_time;
-  last_measure_time_ = now;
-}
-
-void ResourceMonitorNode::calculate_memory_percentage(
-    topnode_interfaces::msg::ProcessResourceUsage &message) {
-  std::regex re("MemTotal:\\s+(\\d+)\\s");
-  std::smatch match;
-
-  std::string mem_info =
-      utils::read_multiline_string_from_file("/proc/meminfo");
-  if (std::regex_search(mem_info, match, re)) {
-    uint32_t total_memory = std::stoul(match[1].str()) * 1024;
-
-    message.memory_percent =
-        (static_cast<double>(message.memory_state.resident_size) /
-         total_memory) *
-        100.0;
+  struct rusage ru;
+  uint64_t current_user_mode_time;
+  uint64_t current_kernel_mode_time;
+  if (getrusage(RUSAGE_SELF, &ru) == 0) {
+    current_user_mode_time = ru.ru_utime.tv_sec * 1'000'000'000 + ru.ru_utime.tv_usec * 1'000;
+    current_kernel_mode_time = ru.ru_stime.tv_sec * 1'000'000'000 + ru.ru_stime.tv_usec * 1'000;
   } else {
-    message.memory_percent = 0.0;
+    auto stat = utils::read_process_stat(proc_root);
+    current_user_mode_time = stat.user_mode_time * (1'000'000'000 / ticks_per_second_);
+    current_kernel_mode_time = stat.kernel_mode_time * (1'000'000'000 / ticks_per_second_);
   }
+  result.user_mode_time = current_user_mode_time - last_tick_user_mode_time_;
+  result.total_user_mode_time = current_user_mode_time;
+  result.kernel_mode_time = current_kernel_mode_time - last_tick_kernel_mode_time_;
+  result.total_kernel_mode_time = current_kernel_mode_time;
+
+  result.percent = (static_cast<double>(result.user_mode_time + result.kernel_mode_time) /
+      (now - last_measure_time_).nanoseconds()) * 100.0;
+
+  last_tick_user_mode_time_ = current_user_mode_time;
+  last_tick_kernel_mode_time_ = current_kernel_mode_time;
+  last_measure_time_ = now;
+
+  result.load_average = utils::read_load_average(proc_root);
+
+  return result;
 }
 
 #include <rclcpp_components/register_node_macro.hpp>

@@ -1,0 +1,7 @@
+uint64 elapsed_time
+uint64 user_mode_time
+uint64 total_user_mode_time
+uint64 kernel_mode_time
+uint64 total_kernel_mode_time
+float64 percent
+LoadAvg load_average
