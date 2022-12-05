@@ -20,6 +20,10 @@ add_executable(resource_monitor src/topnode.cpp)
 target_link_libraries(resource_monitor resource_monitor_node)
 ament_target_dependencies(resource_monitor rclcpp)
 
+rclcpp_components_register_nodes(resource_monitor_node
+  "ResourceMonitorNode"
+)
+
 install(TARGETS
   resource_monitor_node
   ARCHIVE DESTINATION lib
