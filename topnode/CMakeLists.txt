@@ -6,15 +6,17 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(mcap_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(topnode_interfaces REQUIRED)
 
+
 include_directories(include)
 
-add_library(resource_monitor_node SHARED src/resource_monitor_node.cpp)
+add_library(resource_monitor_node SHARED src/resource_monitor_node.cpp src/mcap_writer.cpp)
 target_compile_definitions(resource_monitor_node PRIVATE "TOPNODE_DLL")
-ament_target_dependencies(resource_monitor_node rclcpp rclcpp_components topnode_interfaces)
+ament_target_dependencies(resource_monitor_node rclcpp rclcpp_components topnode_interfaces mcap_vendor)
 
 add_executable(resource_monitor src/topnode.cpp)
 target_link_libraries(resource_monitor resource_monitor_node)

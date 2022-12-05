@@ -16,6 +16,7 @@
 #define TOPNODE__TOPNODE_HPP
 
 #include "topnode/visibility.hpp"
+#include "topnode/mcap_writer.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
 #include <topnode_interfaces/msg/process_resource_usage.hpp>
@@ -39,6 +40,8 @@ private:
       topnode_interfaces::msg::ProcessResourceUsage &message);
   void calculate_memory_percentage(
       topnode_interfaces::msg::ProcessResourceUsage &message);
+
+  std::unique_ptr<topnode::McapWriter> writer_;
 };
 
 #endif // TOPNODE__TOPNODE_HPP
