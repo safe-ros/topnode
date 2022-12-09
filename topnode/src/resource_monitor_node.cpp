@@ -42,20 +42,20 @@ ResourceMonitorNode::ResourceMonitorNode(rclcpp::NodeOptions options)
           .get<bool>()) {
     cpu_memory_usage_publisher_ =
         create_publisher<topnode_interfaces::msg::CpuMemoryUsage>(
-            "cpu_memory_usage", 10);
+            "~/cpu_memory_usage", 10);
   }
   if (get_parameter("publish_memory_state").get_parameter_value().get<bool>()) {
     memory_state_publisher_ =
-        create_publisher<topnode_interfaces::msg::MemoryState>("memory_state",
+        create_publisher<topnode_interfaces::msg::MemoryState>("~/memory_state",
                                                                10);
   }
   if (get_parameter("publish_io_stats").get_parameter_value().get<bool>()) {
     io_stats_publisher_ =
-        create_publisher<topnode_interfaces::msg::IoStats>("io_stats", 10);
+        create_publisher<topnode_interfaces::msg::IoStats>("~/io_stats", 10);
   }
   if (get_parameter("publish_stat").get_parameter_value().get<bool>()) {
     stat_publisher_ =
-        create_publisher<topnode_interfaces::msg::Stat>("stat", 10);
+        create_publisher<topnode_interfaces::msg::Stat>("~/stat", 10);
   }
 
   timer_ = create_wall_timer(
