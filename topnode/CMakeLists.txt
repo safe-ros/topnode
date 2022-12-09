@@ -12,11 +12,16 @@ find_package(topnode_interfaces REQUIRED)
 
 include_directories(include)
 
-add_library(resource_monitor_node SHARED src/resource_monitor_node.cpp)
+add_library(resource_monitor_node SHARED
+  src/resource_info.cpp
+  src/resource_monitor_node.cpp
+  )
+target_compile_features(resource_monitor_node PUBLIC cxx_std_17)
 target_compile_definitions(resource_monitor_node PRIVATE "TOPNODE_DLL")
 ament_target_dependencies(resource_monitor_node rclcpp rclcpp_components topnode_interfaces)
 
 add_executable(resource_monitor src/topnode.cpp)
+target_compile_features(resource_monitor PUBLIC cxx_std_17)
 target_link_libraries(resource_monitor resource_monitor_node)
 ament_target_dependencies(resource_monitor rclcpp)
 

@@ -15,13 +15,17 @@
 #ifndef TOPNODE__TOPNODE_HPP
 #define TOPNODE__TOPNODE_HPP
 
-#include "topnode/visibility.hpp"
-
 #include <filesystem>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
 
-#include <topnode_interfaces/msg/process_resource_usage.hpp>
+#include <topnode_interfaces/msg/cpu_memory_usage.hpp>
+#include <topnode_interfaces/msg/io_stats.hpp>
+#include <topnode_interfaces/msg/memory_state.hpp>
+#include <topnode_interfaces/msg/stat.hpp>
+
+#include "topnode/last_tick_times.hpp"
+#include "topnode/visibility.hpp"
 
 class ResourceMonitorNode : public rclcpp::Node {
 public:
@@ -30,19 +34,25 @@ public:
 private:
   void publish_resource_usage();
 
-  rclcpp::Publisher<topnode_interfaces::msg::ProcessResourceUsage>::SharedPtr
-      resource_usage_publisher_;
-  rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr timer_ = nullptr;
 
-  long ticks_per_second_ = 0;
-  rclcpp::Time last_measure_time_;
-  uint64_t last_tick_user_mode_time_ = 0;
-  uint64_t last_tick_kernel_mode_time_ = 0;
-  uint64_t last_tick_utime_ = 0;
-  uint64_t last_tick_stime_ = 0;
+  rclcpp::Publisher<topnode_interfaces::msg::CpuMemoryUsage>::SharedPtr
+      cpu_memory_usage_publisher_ = nullptr;
+  rclcpp::Publisher<topnode_interfaces::msg::MemoryState>::SharedPtr
+      memory_state_publisher_ = nullptr;
+  rclcpp::Publisher<topnode_interfaces::msg::IoStats>::SharedPtr
+      io_stats_publisher_ = nullptr;
+  rclcpp::Publisher<topnode_interfaces::msg::Stat>::SharedPtr stat_publisher_ =
+      nullptr;
 
-  topnode_interfaces::msg::CpuUsage
-  get_cpu_usage(const std::filesystem::path &proc_root);
+  void publish_cpu_memory_usage();
+  void publish_memory_state();
+  void publish_io_stats();
+  void publish_stat();
+
+  std::filesystem::path proc_root_ = "/proc/self";
+  pid_t pid_;
+  resource_info::LastTickTimes last_tick_times_;
 };
 
 #endif // TOPNODE__TOPNODE_HPP
