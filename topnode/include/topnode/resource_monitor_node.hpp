@@ -46,6 +46,11 @@ private:
   rclcpp::Publisher<topnode_interfaces::msg::Stat>::SharedPtr stat_publisher_ =
       nullptr;
 
+  bool record_cpu_memory_usage_ = false;
+  bool record_memory_state_ = false;
+  bool record_io_stats_ = false;
+  bool record_stat_ = false;
+
   void publish_cpu_memory_usage();
   void publish_memory_state();
   void publish_io_stats();

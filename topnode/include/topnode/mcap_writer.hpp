@@ -41,7 +41,7 @@ public:
   {
     auto msg_ts = rosidl_typesupport_cpp::get_message_type_support_handle<T>();
 
-    auto ret = rmw_serialize(&msg, msg_ts, serialized_msg_);
+    auto ret = rmw_serialize(&msg, msg_ts, &serialized_msg_);
 
     if (ret != RMW_RET_OK)
     {
