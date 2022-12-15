@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Schemas for MCAP recording.
+// \TODO(mjcarroll) read these message definitions at compile time to make
+// syncing easier
 
 constexpr const auto kCpuMemoryUsageSchema =
 R"(uint32 pid

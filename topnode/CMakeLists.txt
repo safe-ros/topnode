@@ -9,6 +9,7 @@ find_package(ament_cmake REQUIRED)
 find_package(mcap_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 find_package(topnode_interfaces REQUIRED)
 
 
@@ -21,7 +22,8 @@ add_library(resource_monitor_node SHARED
   )
 target_compile_features(resource_monitor_node PUBLIC cxx_std_17)
 target_compile_definitions(resource_monitor_node PRIVATE "TOPNODE_DLL")
-ament_target_dependencies(resource_monitor_node rclcpp rclcpp_components topnode_interfaces mcap_vendor)
+ament_target_dependencies(resource_monitor_node
+  rclcpp rclcpp_components rclcpp_lifecycle topnode_interfaces mcap_vendor)
 
 add_executable(resource_monitor src/topnode.cpp)
 target_compile_features(resource_monitor PUBLIC cxx_std_17)
