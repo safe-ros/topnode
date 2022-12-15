@@ -18,8 +18,8 @@
 namespace topnode
 {
 
-McapWriter::McapWriter(const std::string &output_filename):
-  writer_options_("ros2")
+McapWriter::McapWriter(const std::string & output_filename)
+: writer_options_("ros2")
 {
   output_file_ = std::ofstream(output_filename, std::ios::binary);
   writer_.open(output_file_, writer_options_);
@@ -28,13 +28,12 @@ McapWriter::McapWriter(const std::string &output_filename):
 
   auto allocator = rcutils_get_default_allocator();
   auto ret = rmw_serialized_message_init(
-      &serialized_msg_,
-      100u,
-      &allocator
+    &serialized_msg_,
+    100u,
+    &allocator
   );
 
-  if (ret != RMW_RET_OK)
-  {
+  if (ret != RMW_RET_OK) {
     std::cerr << "Failed to initialize serialized message" << std::endl;
   }
 }
@@ -49,15 +48,17 @@ McapWriter::~McapWriter()
   writer_.close();
 }
 
-void McapWriter::add_topic(const std::string &topic_name,
-                           const std::string &message_type,
-                           const std::string &schema_text)
+void McapWriter::add_topic(
+  const std::string & topic_name,
+  const std::string & message_type,
+  const std::string & schema_text)
 {
   mcap::Schema schema;
   schema.encoding = "ros2msg";
   schema.name = message_type;
-  schema.data.assign(reinterpret_cast<const std::byte *>(schema_text.data()),
-                     reinterpret_cast<const std::byte *>(schema_text.data() + schema_text.size()));
+  schema.data.assign(
+    reinterpret_cast<const std::byte *>(schema_text.data()),
+    reinterpret_cast<const std::byte *>(schema_text.data() + schema_text.size()));
   writer_.addSchema(schema);
 
   schemas_.emplace(schema.id, schema);

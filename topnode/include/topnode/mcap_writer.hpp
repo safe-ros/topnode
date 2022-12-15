@@ -12,16 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TOPNODE__MCAP_WRITER_HPP
-#define TOPNODE__MCAP_WRITER_HPP
-
-#include <chrono>
-#include <fstream>
-
-#include <mcap/mcap.hpp>
+#ifndef TOPNODE__MCAP_WRITER_HPP_
+#define TOPNODE__MCAP_WRITER_HPP_
 
 #include <rmw/ret_types.h>
 #include <rmw/serialized_message.h>
+
+#include <chrono>
+#include <fstream>
+#include <string>
+#include <unordered_map>
+
+#include <mcap/mcap.hpp>
 #include <rosidl_typesupport_cpp/message_type_support.hpp>
 
 namespace topnode
@@ -30,32 +32,37 @@ namespace topnode
 class McapWriter
 {
 public:
-  McapWriter(const std::string &output_filename);
+  /// Constructor
+  explicit McapWriter(const std::string & output_filename);
 
+  /// Destructor
   ~McapWriter();
 
-  void add_topic(const std::string &topic, const std::string &message_type, const std::string &schema);
+  /// Add a topic to the current recording
+  void add_topic(
+    const std::string & topic, const std::string & message_type,
+    const std::string & schema);
 
+  /// Write a message to a topic
   template<typename T>
-  void write(const std::string &topic, const T &msg)
+  void write(const std::string & topic, const T & msg)
   {
     auto msg_ts = rosidl_typesupport_cpp::get_message_type_support_handle<T>();
 
     auto ret = rmw_serialize(&msg, msg_ts, &serialized_msg_);
 
-    if (ret != RMW_RET_OK)
-    {
+    if (ret != RMW_RET_OK) {
       std::cerr << "Failed to serialize" << std::endl;
       return;
     }
 
     mcap::Message mcap_msg;
     mcap_msg.channelId = topic_to_channel_[topic];
-    mcap_msg.data = reinterpret_cast<std::byte*>(serialized_msg_.buffer);
+    mcap_msg.data = reinterpret_cast<std::byte *>(serialized_msg_.buffer);
     mcap_msg.dataSize = serialized_msg_.buffer_length;
     uint64_t timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                                    std::chrono::system_clock::now().time_since_epoch())
-                                    .count();
+      std::chrono::system_clock::now().time_since_epoch())
+      .count();
     mcap_msg.logTime = timestamp_ns;
 
     const auto status = writer_.write(mcap_msg);
@@ -79,5 +86,4 @@ private:
 };
 
 }  // namespace topnode
-
-#endif  // TOPNODE__MCAP_WRITER_HPP
+#endif  // TOPNODE__MCAP_WRITER_HPP_

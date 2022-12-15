@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TOPNODE__TOPNODE_HPP
-#define TOPNODE__TOPNODE_HPP
+#ifndef TOPNODE__RESOURCE_MONITOR_NODE_HPP_
+#define TOPNODE__RESOURCE_MONITOR_NODE_HPP_
 
 #include <filesystem>
+#include <memory>
+
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
@@ -29,7 +31,8 @@
 #include "topnode/mcap_writer.hpp"
 #include "topnode/visibility.hpp"
 
-class ResourceMonitorNode : public rclcpp_lifecycle::LifecycleNode {
+class ResourceMonitorNode : public rclcpp_lifecycle::LifecycleNode
+{
 public:
   /// Constructor
   TOPNODE_PUBLIC ResourceMonitorNode(const rclcpp::NodeOptions & options);
@@ -60,13 +63,13 @@ private:
   rclcpp::TimerBase::SharedPtr timer_ = nullptr;
 
   rclcpp_lifecycle::LifecyclePublisher<topnode_interfaces::msg::CpuMemoryUsage>::SharedPtr
-      cpu_memory_usage_publisher_ = nullptr;
+    cpu_memory_usage_publisher_ = nullptr;
   rclcpp_lifecycle::LifecyclePublisher<topnode_interfaces::msg::MemoryState>::SharedPtr
-      memory_state_publisher_ = nullptr;
+    memory_state_publisher_ = nullptr;
   rclcpp_lifecycle::LifecyclePublisher<topnode_interfaces::msg::IoStats>::SharedPtr
-      io_stats_publisher_ = nullptr;
+    io_stats_publisher_ = nullptr;
   rclcpp_lifecycle::LifecyclePublisher<topnode_interfaces::msg::Stat>::SharedPtr stat_publisher_ =
-      nullptr;
+    nullptr;
 
   bool record_cpu_memory_usage_ = false;
   bool record_memory_state_ = false;
@@ -84,4 +87,4 @@ private:
   std::unique_ptr<topnode::McapWriter> writer_;
 };
 
-#endif // TOPNODE__TOPNODE_HPP
+#endif  // TOPNODE__RESOURCE_MONITOR_NODE_HPP_

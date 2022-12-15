@@ -27,27 +27,29 @@
 
 #include "topnode/last_tick_times.hpp"
 
-namespace resource_info {
+namespace resource_info
+{
 
 topnode_interfaces::msg::IoStats
-get_io_stats(const std::filesystem::path &proc_root);
+get_io_stats(const std::filesystem::path & proc_root);
 
-topnode_interfaces::msg::Stat get_stat(const std::filesystem::path &proc_root);
+topnode_interfaces::msg::Stat get_stat(const std::filesystem::path & proc_root);
 
 topnode_interfaces::msg::MemoryState
-get_memory_state(const std::filesystem::path &proc_root);
+get_memory_state(const std::filesystem::path & proc_root);
 
 topnode_interfaces::msg::MemoryUsage
-get_memory_usage(const std::filesystem::path &proc_root);
+get_memory_usage(const std::filesystem::path & proc_root);
 
 topnode_interfaces::msg::LoadAvg
-get_load_average(const std::filesystem::path &proc_root);
+get_load_average(const std::filesystem::path & proc_root);
 
 topnode_interfaces::msg::CpuUsage
-get_cpu_usage(const std::filesystem::path &proc_root,
-              const rclcpp::Clock::SharedPtr clock,
-              LastTickTimes &last_tick_times);
+get_cpu_usage(
+  const std::filesystem::path & proc_root,
+  const rclcpp::Clock::SharedPtr clock,
+  LastTickTimes & last_tick_times);
 
-} // namespace resource_info
+}  // namespace resource_info
 
-#endif // TOPNODE__RESOURCE_INFO_HPP_
+#endif  // TOPNODE__RESOURCE_INFO_HPP_

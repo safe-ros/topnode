@@ -19,17 +19,17 @@
 
 #include "topnode/visibility.hpp"
 
-namespace resource_info {
+namespace resource_info
+{
 
-struct LastTickTimes {
-  long ticks_per_second = 0;
+struct LastTickTimes
+{
+  int64_t ticks_per_second = 0;
   rclcpp::Time last_measure_time;
   uint64_t user_mode_time = 0;
   uint64_t kernel_mode_time = 0;
   uint64_t utime = 0;
   uint64_t stime = 0;
 };
-
-}; // namespace resource_info
-
-#endif // TOPNODE__LAST_TICK_TIMES_HPP_
+}  // namespace resource_info
+#endif  // TOPNODE__LAST_TICK_TIMES_HPP_

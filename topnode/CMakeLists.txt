@@ -19,7 +19,7 @@ add_library(resource_monitor_node SHARED
   src/resource_info.cpp
   src/resource_monitor_node.cpp
   src/mcap_writer.cpp
-  )
+)
 target_compile_features(resource_monitor_node PUBLIC cxx_std_17)
 target_compile_definitions(resource_monitor_node PRIVATE "TOPNODE_DLL")
 ament_target_dependencies(resource_monitor_node

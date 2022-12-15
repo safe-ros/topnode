@@ -17,7 +17,8 @@
 #include "topnode/resource_monitor_node.hpp"
 #include <rclcpp/rclcpp.hpp>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[])
+{
   rclcpp::init(argc, argv);
   auto node = std::make_shared<ResourceMonitorNode>(rclcpp::NodeOptions());
   rclcpp::spin(node->get_node_base_interface());

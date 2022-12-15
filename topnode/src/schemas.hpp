@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef SCHEMAS_HPP_
+#define SCHEMAS_HPP_
+
 // Schemas for MCAP recording.
 // \TODO(mjcarroll) read these message definitions at compile time to make
 // syncing easier
 
 constexpr const auto kCpuMemoryUsageSchema =
-R"(uint32 pid
+  R"(uint32 pid
 CpuUsage cpu_usage
 MemoryUsage memory_usage
 ================================================================================
@@ -45,7 +48,7 @@ uint64 virtual_size
 float64 percent)";
 
 constexpr const auto kMemoryStateSchema =
-R"(uint64 total_program_size
+  R"(uint64 total_program_size
 uint64 resident_size
 uint64 shared_page_count
 uint64 text_size
@@ -54,7 +57,7 @@ uint64 data_size
 uint64 dirty_pages)";
 
 constexpr const auto kIoStatsSchema =
-R"(uint64 bytes_read
+  R"(uint64 bytes_read
 uint64 bytes_written
 uint64 characters_read
 uint64 characters_written
@@ -63,7 +66,7 @@ uint64 write_syscalls
 uint64 cancelled_byte_writes)";
 
 constexpr const auto kStatSchema =
-R"(uint32 pid
+  R"(uint32 pid
 string command
 char state
 uint32 parent_pid
@@ -115,3 +118,5 @@ uint32 end_of_command_line_args
 uint32 start_of_environment
 uint32 end_of_environment
 int32 exit_code)";
+
+#endif  // SCHEMAS_HPP_
