@@ -11,6 +11,8 @@
 
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>mcap_vendor</depend>
   <depend>topnode_interfaces</depend>
 
   <test_depend>ament_lint_auto</test_depend>

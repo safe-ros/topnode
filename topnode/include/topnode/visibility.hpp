@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TOPNODE__VISIBILITY_H_
-#define TOPNODE__VISIBILITY_H_
+#ifndef TOPNODE__VISIBILITY_HPP_
+#define TOPNODE__VISIBILITY_HPP_
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,4 +62,4 @@ extern "C" {
 }
 #endif
 
-#endif // TOPNODE__VISIBILITY_H_
+#endif  // TOPNODE__VISIBILITY_HPP_
