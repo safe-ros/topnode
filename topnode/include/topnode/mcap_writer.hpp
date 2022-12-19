@@ -47,6 +47,10 @@ public:
   template<typename T>
   void write(const std::string & topic, const T & msg)
   {
+    const auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::system_clock::now().time_since_epoch())
+      .count();
+
     auto msg_ts = rosidl_typesupport_cpp::get_message_type_support_handle<T>();
 
     auto ret = rmw_serialize(&msg, msg_ts, &serialized_msg_);
@@ -60,9 +64,6 @@ public:
     mcap_msg.channelId = topic_to_channel_[topic];
     mcap_msg.data = reinterpret_cast<std::byte *>(serialized_msg_.buffer);
     mcap_msg.dataSize = serialized_msg_.buffer_length;
-    uint64_t timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-      std::chrono::system_clock::now().time_since_epoch())
-      .count();
     mcap_msg.logTime = timestamp_ns;
 
     const auto status = writer_.write(mcap_msg);
