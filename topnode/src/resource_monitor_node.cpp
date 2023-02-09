@@ -36,6 +36,7 @@
 
 constexpr auto kNodeName = "resource_monitor";
 constexpr auto kNodeNamespace = "";
+constexpr auto kPid = "pid";
 
 // Default topic names
 constexpr auto kCpuMemoryUsageTopic = "~/cpu_memory_usage";
@@ -60,6 +61,7 @@ constexpr auto kRecordStatParam = "record_stat";
 ResourceMonitorNode::ResourceMonitorNode(const rclcpp::NodeOptions & options)
 : rclcpp_lifecycle::LifecycleNode(kNodeName, kNodeNamespace, options)
 {
+  declare_parameter(kPid, -1);
   declare_parameter(kPublishCpuMemoryParam, true);
   declare_parameter(kPublishMemoryStateParam, true);
   declare_parameter(kPublishIoStatsParam, false);
@@ -86,6 +88,7 @@ ResourceMonitorNode::~ResourceMonitorNode()
 ResourceMonitorNode::CallbackReturn ResourceMonitorNode::on_configure(
   const rclcpp_lifecycle::State &)
 {
+
   if (get_parameter(kPublishCpuMemoryParam)
     .get_parameter_value()
     .get<bool>())
@@ -123,13 +126,26 @@ ResourceMonitorNode::CallbackReturn ResourceMonitorNode::on_configure(
       .get<int64_t>()),
     std::bind(&ResourceMonitorNode::publish_resource_usage, this));
 
+  pid_ = get_parameter(kPid)
+      .get_parameter_value()
+      .get<int64_t>();
+
+  if (pid_ < 0)
+  {
+    pid_ = getpid();
+    proc_root_ = "/proc/self";
+  } else  {
+    proc_root_ = "/proc/" + std::to_string(pid_);
+  }
+
+  std::cout << "Monitoring " << pid_ << std::endl;
+
   last_tick_times_.ticks_per_second = sysconf(_SC_CLK_TCK);
   last_tick_times_.last_measure_time = get_clock()->now();
   last_tick_times_.user_mode_time = 0;
   last_tick_times_.kernel_mode_time = 0;
   last_tick_times_.utime = 0;
   last_tick_times_.stime = 0;
-  pid_ = getpid();
 
   return CallbackReturn::SUCCESS;
 }
