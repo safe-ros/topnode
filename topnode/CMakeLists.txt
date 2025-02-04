@@ -13,12 +13,15 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(topnode_interfaces REQUIRED)
 
 
-include_directories(include)
-
 add_library(resource_monitor_node SHARED
   src/resource_info.cpp
   src/resource_monitor_node.cpp
   src/mcap_writer.cpp
+)
+target_include_directories(resource_monitor_node
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_compile_features(resource_monitor_node PUBLIC cxx_std_17)
 target_compile_definitions(resource_monitor_node PRIVATE "TOPNODE_DLL")
@@ -36,6 +39,7 @@ rclcpp_components_register_nodes(resource_monitor_node
 
 install(TARGETS
   resource_monitor_node
+  EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
@@ -43,6 +47,14 @@ install(TARGETS
 install(TARGETS
   resource_monitor
   DESTINATION lib/${PROJECT_NAME})
+
+install(
+  DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION include/${PROJECT_NAME})
+
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp rclcpp_components rclcpp_lifecycle
+  topnode_interfaces mcap_vendor)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
